@@ -2,7 +2,6 @@ import os
 import pygame
 import sys
 
-from pygame import mixer
 from pygame.locals import *
 
 import config
@@ -51,21 +50,28 @@ class Level(State):
     game logic.
     """
 
-    def __init__(self, number=1):
+    def __init__(self, number=1, score=0):
+
         self.level_up_sound = None
         self.crashsound = None
+
+        # Default weight initial falling speed auxiliary parameter
         self.number = number
+        #  Score of 0 in the preliminary examination
+        self.score = score
         # How many weights remain to dodge in this level?
         self.remaining = config.weights_per_level
 
+        #  Default weight falling speed initial increment parameter
         speed = config.drop_speed
         # One speed_increase added for each level above 1:
         speed += (self.number-1) * config.speed_increase
         # Create the weight and banana:
-        self.weight = objects.Weight(speed)
+        self.weight1 = objects.Weight1(speed)
+        self.weight2 = objects.Weight2(speed)
         self.banana = objects.Banana()
-        both = self.weight, self.banana  # This could contain more sprites...
-        self.sprites = pygame.sprite.RenderUpdates(both)
+        sprites_container = self.weight1, self.weight2,  self.banana  # This could contain more sprites...
+        self.sprites = pygame.sprite.RenderUpdates(sprites_container)
 
     def update(self, game):
         """
@@ -75,7 +81,7 @@ class Level(State):
         self.sprites.update()
         # If the banana touches the weight, tell the game to switch to
         # a GameOver state:
-        if self.banana.touches(self.weight):
+        if self.banana.touches(self.weight1) or self.banana.touches(self.weight2):
 
             self.crashsound = pygame.mixer.Sound(config.crash_sound)
             self.crashsound.play()
@@ -85,13 +91,19 @@ class Level(State):
         # Otherwise, if the weight has landed, reset it. If all the
         # weights of this level have been dodged, tell the game to
         # switch to a LevelCleared state:
-        elif self.weight.landed:
-            self.weight.reset()
-            self.remaining -= 1
+        elif self.weight1.landed or self.weight2.landed:
+            if self.weight1.landed:
+                self.score += config.score_for_weight16
+                self.weight1.reset()
+                self.remaining -= 1
+
+            if self.weight2.landed:
+                self.score += config.score_for_weight8
+                self.weight2.reset()
+                self.remaining -= 1
+
             if self.remaining == 0:
-                self.level_up_sound = pygame.mixer.Sound(config.level_up_sound)
-                self.level_up_sound.play()
-                game.next_state = LevelCleared(self.number)
+                game.next_state = LevelCleared(self.number, self.score)
 
     def display(self, screen):
         """
@@ -103,6 +115,10 @@ class Level(State):
         screen.fill(config.background_color)
         updates = self.sprites.draw(screen)
         pygame.display.update(updates)
+
+        #  Show score
+        draw_score(screen, "Score:" + str(self.score), config.score_x, config.score_y)
+        pygame.display.flip()
 
 
 class Paused(State):
@@ -144,8 +160,8 @@ class Paused(State):
         # First, clear the screen by filling it with the background color:
         screen.fill(config.background_color)
 
-        # Create a Font object with the default appearance, and specified size:
-        font = pygame.font.Font(None, config.font_size)
+        # Create a Font object that uses an exogenous font and a specified font size:
+        font = pygame.font.Font(config.font_path, config.font_size)
 
         # Get the lines of text in self.text, ignoring empty lines at
         # the top or bottom:
@@ -172,7 +188,7 @@ class Paused(State):
             # blit the image to the screen:
             screen.blit(image, r)
 
-        antialias = 1   # Smooth the text
+        antialias = True   # Smooth the text
         black = 0, 0, 0  # Render it as black
 
         # Render all the lines, starting at the calculated top, and
@@ -186,6 +202,9 @@ class Paused(State):
 
         # Display all the changes:
         pygame.display.flip()
+
+    def next_state(self):
+        pass
 
 
 class Info(Paused):
@@ -224,25 +243,45 @@ class LevelCleared(Paused):
     given level. It is followed by the next level state.
     """
 
-    def __init__(self, number):
+    def __init__(self, number, score):
+        self.level_up_sound = pygame.mixer.Sound(config.level_up_sound)
+        self.level_up_sound.play()
+
         self.number = number
+        self.score = score
         self.text = '''Level {} cleared
-        Click to start next level'''.format(self.number)
+        Click or press any key to start next level'''.format(self.number)
 
     def next_state(self):
-        return Level(self.number + 1)
+        return Level(self.number + 1, self.score)
 
 
 class GameOver(Paused):
-
     """
     A state that informs the user that he or she has lost the
     game. It is followed by the first level.
     """
+    def __init__(self):
+        self.failsound = pygame.mixer.Sound(config.fail_sound)
+        self.failsound.play()
+
     next_state = Level
     text = '''
     Game Over
-    Click to Restart, Esc to Quit'''
+    Click or press any key to Restart, Esc to Quit'''
+
+
+def draw_score(surf, text: str, x, y):
+    """
+    Display the score in real time,
+    the score will be added when the difficulty level increases,
+    if the player dies, the score will be cleared.
+    """
+    font = pygame.font.Font(config.font_path, config.score_font_size)
+    text_surface = font.render(text, True, config.font_color)
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
 
 
 class Game:
@@ -255,10 +294,10 @@ class Game:
     def __init__(self, *args):
         # Get the directory where the game and the images are located:
         path = os.path.abspath(args[0])
-        dir = os.path.split(path)[0]
+        directory = os.path.split(path)[0]
         # Move to that directory (so that the image files may be
         # opened later on):
-        os.chdir(dir)
+        os.chdir(directory)
         # Start with no state:
         self.state = None
         # Move to StartUp in the first event loop iteration:
@@ -281,7 +320,7 @@ class Game:
         screen_size = config.screen_size
         screen = pygame.display.set_mode(screen_size, flag)
 
-        pygame.display.set_caption('Fruit Self Defense')
+        pygame.display.set_caption('Squish')
         pygame.mouse.set_visible(False)
 
         # The main loop:
@@ -301,5 +340,5 @@ class Game:
 
 
 if __name__ == '__main__':
-    game = Game(*sys.argv)
-    game.run()
+    squish = Game(*sys.argv)
+    squish.run()

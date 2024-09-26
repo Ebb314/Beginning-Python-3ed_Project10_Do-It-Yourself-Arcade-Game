@@ -19,13 +19,14 @@ class SquishSprite(pygame.sprite.Sprite):
     def __init__(self, image):
         super().__init__()
         self.image = pygame.image.load(image).convert()
+        self.image.set_colorkey((255, 255, 255))
         self.rect = self.image.get_rect()
         screen = pygame.display.get_surface()
         shrink = -config.margin * 2
         self.area = screen.get_rect().inflate(shrink, shrink)
 
 
-class Weight(SquishSprite):
+class Weight1(SquishSprite):
 
     """
     A falling weight. It uses the SquishSprite constructor to set up
@@ -34,7 +35,7 @@ class Weight(SquishSprite):
     """
 
     def __init__(self, speed):
-        super().__init__(config.weight_image)
+        super().__init__(config.weight16_image)
         self.landed = None
         self.speed = speed
         self.reset()
@@ -57,6 +58,41 @@ class Weight(SquishSprite):
         # Add a delay for each update to adapt to the player's reaction time,
         # and get the optimal value of 0.002 seconds after parameterization.
         self.rect.top += self.speed
+        self.landed = self.rect.top >= self.area.bottom
+
+
+class Weight2(SquishSprite):
+
+    """
+    A falling weight. It uses the SquishSprite constructor to set up
+    its weight image, and will fall with a speed given as a parameter
+    to its constructor.
+    """
+
+    def __init__(self, speed):
+        super().__init__(config.weight8_image)
+        self.landed = None
+        self.speed = speed
+        self.reset()
+
+    def reset(self):
+        """
+        Move the weight to the top of the screen (just out of sight)
+        and place it at a random horizontal position.
+        """
+        x = randrange(self.area.left, self.area.right)
+        self.rect.midbottom = x, 0
+
+    def update(self):
+        """
+        Move the weight vertically (downwards) a distance
+        corresponding to its speed. Also set the landed attribute
+        according to whether it has reached the bottom of the screen.
+        """
+        time.sleep(0.002)
+        # Add a delay for each update to adapt to the player's reaction time,
+        # and get the optimal value of 0.002 seconds after parameterization.
+        self.rect.top += self.speed + 1
         self.landed = self.rect.top >= self.area.bottom
 
 
@@ -101,3 +137,11 @@ class Banana(SquishSprite):
         bounds.bottom = self.rect.bottom
         # Check whether the bounds intersect with the other object's rect:
         return bounds.colliderect(other.rect)
+
+
+# class HealthBar(pygame.sprite.Sprite):
+#     def __init__(self, health):
+#         super().__init__(config.healthbar_image)
+#         self.rect = None
+#         self.health = health
+#         self.rect.top = 10, 0
