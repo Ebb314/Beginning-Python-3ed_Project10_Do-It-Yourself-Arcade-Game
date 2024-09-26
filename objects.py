@@ -57,7 +57,7 @@ class Weight1(SquishSprite):
         time.sleep(0.002)
         # Add a delay for each update to adapt to the player's reaction time,
         # and get the optimal value of 0.002 seconds after parameterization.
-        self.rect.top += self.speed
+        self.rect.top += self.speed + 1
         self.landed = self.rect.top >= self.area.bottom
 
 
@@ -92,7 +92,7 @@ class Weight2(SquishSprite):
         time.sleep(0.002)
         # Add a delay for each update to adapt to the player's reaction time,
         # and get the optimal value of 0.002 seconds after parameterization.
-        self.rect.top += self.speed + 1
+        self.rect.top += self.speed
         self.landed = self.rect.top >= self.area.bottom
 
 
