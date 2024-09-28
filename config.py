@@ -11,6 +11,9 @@ weight16_image = 'weight1.png'
 weight8_image = 'weight2.png'
 splash_image = 'game_cover.png'
 healthbar_image = 'healthbar.png'
+basket_image = 'basket.png'
+egg_image = 'egg.png'
+
 font_path = 'font.ttf'
 
 # General appearance:
@@ -25,17 +28,24 @@ score_x = 60
 score_y = 20
 life_x = 850
 life_y = 20
+btn1_color = 255, 0, 0  # red
+btn2_color = 0, 255, 0  # green
+btn1_pos_size = 300, 500, 100, 50
+btn2_pos_size = 600, 500, 100, 50
 
 # These affect the behavior of the game:
-weight_number = 2
 drop_speed = 1
 banana_speed = 10
 speed_increase = 1
 weights_per_level = 10
-banana_pad_top = 40
-banana_pad_side = 20
+banana_pad_top = 10
+banana_pad_side = 10
+basket_pad_top = 5
+basket_pad_side = 5
 score_for_weight16 = 2
 score_for_weight8 = 1
+FPS = 240
+egg_number = 5
 
 # Sounds in the game:
 crash_sound = 'crash.wav'

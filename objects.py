@@ -2,7 +2,6 @@ from random import randrange
 
 import config
 import pygame
-import time
 
 "This module contains the game objects of the Squish game."
 
@@ -46,7 +45,7 @@ class Weight1(SquishSprite):
         and place it at a random horizontal position.
         """
         x = randrange(self.area.left, self.area.right)
-        self.rect.midbottom = x, 0
+        self.rect.midbottom = x, 0 - randrange(0, 300)
 
     def update(self):
         """
@@ -54,7 +53,7 @@ class Weight1(SquishSprite):
         corresponding to its speed. Also set the landed attribute
         according to whether it has reached the bottom of the screen.
         """
-        time.sleep(0.001)
+
         # Add a delay for each update to adapt to the player's reaction time,
         # and get the optimal value of 0.002 seconds after parameterization.
         self.rect.top += self.speed + 2
@@ -81,7 +80,7 @@ class Weight2(SquishSprite):
         and place it at a random horizontal position.
         """
         x = randrange(self.area.left, self.area.right)
-        self.rect.midbottom = x, 0
+        self.rect.midbottom = x, 0 - randrange(0, 300)
 
     def update(self):
         """
@@ -89,7 +88,7 @@ class Weight2(SquishSprite):
         corresponding to its speed. Also set the landed attribute
         according to whether it has reached the bottom of the screen.
         """
-        time.sleep(0.001)
+
         # Add a delay for each update to adapt to the player's reaction time,
         # and get the optimal value of 0.002 seconds after parameterization.
         self.rect.top += self.speed + 1
@@ -139,9 +138,34 @@ class Banana(SquishSprite):
         return bounds.colliderect(other.rect)
 
 
-# class HealthBar(pygame.sprite.Sprite):
-#     def __init__(self, health):
-#         super().__init__(config.healthbar_image)
-#         self.rect = None
-#         self.health = health
-#         self.rect.top = 10, 0
+class Egg(SquishSprite):
+    def __init__(self, speed):
+        super().__init__(config.egg_image)
+        self.landed = None
+        self.speed = speed
+        self.reset()
+
+    def reset(self):
+        x = randrange(self.area.left, self.area.right)
+        self.rect.midbottom = x, 0 - randrange(0, 1000)
+
+    def update(self):
+        self.rect.top += self.speed
+        self.landed = self.rect.top >= self.area.bottom
+
+
+class Basket(SquishSprite):
+    def __init__(self):
+        super().__init__(config.basket_image)
+        self.rect.bottom = self.area.bottom
+        self.pad_top = config.basket_pad_top
+        self.pad_side = config.basket_pad_side
+
+    def update(self):
+        self.rect.centerx = pygame.mouse.get_pos()[0]
+        self.rect = self.rect.clamp(self.area)
+
+    def touches(self, other):
+        bounds = self.rect.inflate(-self.pad_side, -self.pad_top)
+        bounds.bottom = self.rect.bottom
+        return bounds.colliderect(other.rect)
