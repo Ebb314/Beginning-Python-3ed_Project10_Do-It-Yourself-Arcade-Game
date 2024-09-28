@@ -19,7 +19,7 @@ class SquishSprite(pygame.sprite.Sprite):
     def __init__(self, image):
         super().__init__()
         self.image = pygame.image.load(image).convert()
-        self.image.set_colorkey((255, 255, 255))
+        self.image.set_colorkey((255, 255, 255))  # Transparent background colour (white here)
         self.rect = self.image.get_rect()
         screen = pygame.display.get_surface()
         shrink = -config.margin * 2
@@ -54,10 +54,10 @@ class Weight1(SquishSprite):
         corresponding to its speed. Also set the landed attribute
         according to whether it has reached the bottom of the screen.
         """
-        time.sleep(0.002)
+        time.sleep(0.001)
         # Add a delay for each update to adapt to the player's reaction time,
         # and get the optimal value of 0.002 seconds after parameterization.
-        self.rect.top += self.speed + 1
+        self.rect.top += self.speed + 2
         self.landed = self.rect.top >= self.area.bottom
 
 
@@ -89,10 +89,10 @@ class Weight2(SquishSprite):
         corresponding to its speed. Also set the landed attribute
         according to whether it has reached the bottom of the screen.
         """
-        time.sleep(0.002)
+        time.sleep(0.001)
         # Add a delay for each update to adapt to the player's reaction time,
         # and get the optimal value of 0.002 seconds after parameterization.
-        self.rect.top += self.speed
+        self.rect.top += self.speed + 1
         self.landed = self.rect.top >= self.area.bottom
 
 

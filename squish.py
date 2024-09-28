@@ -50,17 +50,21 @@ class Level(State):
     game logic.
     """
 
-    def __init__(self, number=1, score=0):
+    def __init__(self, number=1, score=0, lives=5):
 
         self.level_up_sound = None
         self.crashsound = None
 
         # Default weight initial falling speed auxiliary parameter
         self.number = number
-        #  Score of 0 in the preliminary examination
+        # Score of 0 in the preliminary examination
         self.score = score
+        # Initial lives for player
+        self.lives = lives
         # How many weights remain to dodge in this level?
         self.remaining = config.weights_per_level
+        # Track whether collisions are being handled
+        self.is_colliding = False
 
         #  Default weight falling speed initial increment parameter
         speed = config.drop_speed
@@ -82,23 +86,37 @@ class Level(State):
         # If the banana touches the weight, tell the game to switch to
         # a GameOver state:
         if self.banana.touches(self.weight1) or self.banana.touches(self.weight2):
+            if not self.is_colliding:
+                self.is_colliding = True
+                self.crashsound = pygame.mixer.Sound(config.crash_sound)
+                self.crashsound.play()
 
-            self.crashsound = pygame.mixer.Sound(config.crash_sound)
-            self.crashsound.play()
+                if self.banana.touches(self.weight1):
+                    self.lives -= 2
+                elif self.banana.touches(self.weight2):
+                    self.lives -= 1
 
-            game.next_state = GameOver()
+                if self.lives <= 0:
+                    game.next_state = GameOver()
 
         # Otherwise, if the weight has landed, reset it. If all the
         # weights of this level have been dodged, tell the game to
         # switch to a LevelCleared state:
         elif self.weight1.landed or self.weight2.landed:
+
             if self.weight1.landed:
-                self.score += config.score_for_weight16
+                if self.is_colliding:
+                    self.is_colliding = False
+                else:
+                    self.score += config.score_for_weight16
                 self.weight1.reset()
                 self.remaining -= 1
 
             if self.weight2.landed:
-                self.score += config.score_for_weight8
+                if self.is_colliding:
+                    self.is_colliding = False
+                else:
+                    self.score += config.score_for_weight8
                 self.weight2.reset()
                 self.remaining -= 1
 
@@ -118,6 +136,10 @@ class Level(State):
 
         #  Show score
         draw_score(screen, "Score:" + str(self.score), config.score_x, config.score_y)
+
+        # Show lives left
+        draw_lives(screen, self.lives, config.life_x, config.life_y, config.healthbar_image)
+
         pygame.display.flip()
 
 
@@ -282,6 +304,23 @@ def draw_score(surf, text: str, x, y):
     text_rect = text_surface.get_rect()
     text_rect.midtop = (x, y)
     surf.blit(text_surface, text_rect)
+
+
+def draw_lives(surf, live, x, y, img):
+    """
+    Show how many lives the player has left.
+    """
+    healthbar_img = pygame.image.load(img).convert()
+    healthbar_img = pygame.transform.scale(healthbar_img, (25, 25))
+    healthbar_img.set_colorkey((255, 255, 255))  # Transparent background colour (white here)
+    if live > 0:
+        for i in range(live):
+            img_rect = healthbar_img.get_rect()
+            img_rect.x = x + 30 * i
+            img_rect.y = y
+            surf.blit(healthbar_img, img_rect)
+    else:
+        pass
 
 
 class Game:

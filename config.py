@@ -23,6 +23,8 @@ score_font_size = 24
 font_color = 0, 0, 0
 score_x = 60
 score_y = 20
+life_x = 850
+life_y = 20
 
 # These affect the behavior of the game:
 weight_number = 2
