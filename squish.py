@@ -364,7 +364,8 @@ class Banana_Info(Paused):
     trying to survive a course in
     self-defense against fruit, where the
     participants will "defend" themselves
-    against you with a 16 ton weight.'''
+    against you with a 16 ton weight.
+    (Click to continue)'''
 
 
 class Basket_Info(Paused):
@@ -383,7 +384,8 @@ class Basket_Info(Paused):
     as many eggs as possible 
     without missing any or allowing 
     them to fall to the ground or 
-    otherwise go uncaught.'''
+    otherwise go uncaught.
+    (Click to continue)'''
 
 
 class Banana_StartUp(Paused):
@@ -397,7 +399,8 @@ class Banana_StartUp(Paused):
     image = config.splash_image
     text = '''
     Welcome to Squish,
-    the game of Fruit Self-Defense'''
+    the game of Fruit Self-Defense
+    (Click to continue)'''
 
 
 class Basket_StartUp(Paused):
@@ -411,7 +414,8 @@ class Basket_StartUp(Paused):
     image = config.splash_image
     text = '''
     Welcome to Squish,
-    the game of Egg Catcher'''
+    the game of Egg Catcher
+    (Click to continue)'''
 
 
 class LevelCleared(Paused):
